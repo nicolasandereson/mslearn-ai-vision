@@ -15,24 +15,34 @@ namespace image_analysis
     class Program
     {
 
+        /// <summary>
+        /// Main entry point for the application. Loads configuration settings, initializes the AI Vision client,
+        /// analyzes an image, and processes the image for background removal or foreground matting.
+        /// </summary>
         static async Task Main(string[] args)
         {
             try
             {
-                // Get config settings from AppSettings
+
+                // Initialize a configuration builder to load settings from a JSON file.
                 IConfigurationBuilder builder = new ConfigurationBuilder().AddJsonFile("appsettings.json");
+                // Build the configuration object which will be used to access settings.
                 IConfigurationRoot configuration = builder.Build();
+                // Retrieve the AI Services endpoint URL from the configuration.
                 string aiSvcEndpoint = configuration["AIServicesEndpoint"];
+                // Retrieve the AI Services key from the configuration.
                 string aiSvcKey = configuration["AIServicesKey"];
 
-                // Get image
+                // Set the default image file path.
                 string imageFile = "images/street.jpg";
+                // Check if any command-line arguments are provided.
                 if (args.Length > 0)
                 {
+                    // If an argument is provided, use it as the image file path.
                     imageFile = args[0];
                 }
 
-                // Authenticate Azure AI Vision client
+                // Initialize the ImageAnalysisClient with the AI service endpoint and key for authentication.
                 ImageAnalysisClient client = new ImageAnalysisClient(
                     new Uri(aiSvcEndpoint),
                     new AzureKeyCredential(aiSvcKey));
@@ -50,6 +60,12 @@ namespace image_analysis
             }
         }
 
+        /// <summary>
+        /// Analyzes the specified image using the provided ImageAnalysisClient, retrieves various visual features,
+        /// and draws bounding boxes around detected objects and people. Results are displayed and annotated images are saved.
+        /// </summary>
+        /// <param name="imageFile">The path to the image file to be analyzed.</param>
+        /// <param name="client">The ImageAnalysisClient used to perform the analysis.</param>
         static void AnalyzeImage(string imageFile, ImageAnalysisClient client)
         {
             Console.WriteLine($"\nAnalyzing {imageFile} \n");
@@ -156,6 +172,14 @@ namespace image_analysis
 
 
         }
+
+        /// <summary>
+        /// Makes an asynchronous call to the Azure AI Vision service to either remove the background from an image 
+        /// or generate a foreground matte, based on the specified mode. The result is saved as an image file.
+        /// </summary>
+        /// <param name="imageFile">The path to the image file to be processed.</param>
+        /// <param name="endpoint">The endpoint URL of the Azure AI Vision service.</param>
+        /// <param name="key">The subscription key for the Azure AI Vision service.</param>
         static async Task BackgroundForeground(string imageFile, string endpoint, string key)
         {
             // Remove the background from the image or generate a foreground matte
